@@ -1,0 +1,33 @@
+name: Self-hosted Runner Test
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-runner:
+    runs-on: [self-hosted, linux, x64]
+
+    steps:
+      - name: Show runner information
+        run: |
+          echo "=== Runner ==="
+          hostname
+          echo "=== OS ==="
+          uname -a
+          echo "=== User ==="
+          whoami
+
+      - name: Check Docker
+        run: |
+          docker --version
+          docker ps
+
+      - name: Test Docker
+        run: |
+          docker run --rm nginx:alpine nginx -v
