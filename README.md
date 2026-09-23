@@ -9,3 +9,7 @@ Change made by developer B
 
 Change made by developer A
 
+
+## Healthcheck
+
+Application health can be checked before deployment.
