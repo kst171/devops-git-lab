@@ -24,5 +24,16 @@ jobs:
           test -f README.md
           grep -q "Healthcheck" README.md
 
+      - name: Check Nginx configuration
+        run: |
+          docker run --rm \
+            -v "$PWD/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+            nginx:alpine \
+            nginx -t
+
+      - name: Build Docker image
+        run: |
+          docker build -t devops-git-lab:test .
+
       - name: Success
-        run: echo "CI passed"
+        run: echo "All CI checks passed"
