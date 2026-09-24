@@ -1,0 +1,66 @@
+name: Docker Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  CONTAINER_NAME: devops-git-lab
+  HOST_PORT: 8088
+  IMAGE_TAG: sha-${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64]
+
+    steps:
+      - name: Show deployment info
+        run: |
+          echo "Deploying commit: ${{ github.sha }}"
+          echo "Image: $IMAGE_NAME:sha-${{ github.sha }}"
+          echo "Runner: $(hostname)"
+
+      - name: Pull Docker image
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          IMAGE="$IMAGE_NAME:sha-$SHORT_SHA"
+
+          for i in {1..10}; do
+            if docker pull "$IMAGE"; then
+              exit 0
+            fi
+
+            echo "Image is not available yet. Retry $i/10..."
+            sleep 10
+          done
+
+          echo "Failed to pull $IMAGE"
+          exit 1
+
+      - name: Stop old container
+        run: |
+          docker rm -f "$CONTAINER_NAME" || true
+
+      - name: Start new container
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          docker run -d \
+            --name "$CONTAINER_NAME" \
+            --restart unless-stopped \
+            -p "$HOST_PORT:80" \
+            "$IMAGE_NAME:sha-$SHORT_SHA"
+
+      - name: Health check
+        run: |
+          sleep 3
+          curl --fail http://127.0.0.1:$HOST_PORT
+
+      - name: Show running container
+        run: |
+          docker ps --filter "name=$CONTAINER_NAME"
