@@ -12,7 +12,6 @@ env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
   CONTAINER_NAME: devops-git-lab
   HOST_PORT: 8088
-  IMAGE_TAG: sha-${{ github.sha }}
 
 jobs:
   deploy:
@@ -21,6 +20,7 @@ jobs:
     steps:
       - name: Show deployment info
         run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
           echo "Deploying commit: ${{ github.sha }}"
           echo "Image: $IMAGE_NAME:sha-${{ github.sha }}"
           echo "Runner: $(hostname)"
